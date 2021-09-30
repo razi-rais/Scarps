@@ -35,7 +35,7 @@ welcome = """\
 """
 print(welcome)
 
-parser = argparse.ArgumentParser(description="🚀 Simple utility to check custom domain settings b/w AFD & Azure AD B2C", epilog="""example: check_b2cdomain.py  -custom-domain 'login.contoso.com' -policy  'b2c_1_susi'""")
+parser = argparse.ArgumentParser(description="🚀 Simple utility to check custom domain settings b/w AFD & Azure AD B2C", epilog="""example: check_b2cdomain.py  -custom-domain 'login.contoso.com' -policy 'b2c_1_susi'""")
 optional = parser._action_groups.pop()
 required = parser.add_argument_group('required arguments')
 parser._action_groups.append(optional)
