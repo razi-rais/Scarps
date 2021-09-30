@@ -127,7 +127,7 @@ def main_interaction(args):
                 print(f'   💔 AFD Header [X-Azure-OriginStatusCode] is missing or value is not within normal range ! This is a symptom of backend calls from AFD --> Azure AD may be having issues. Run command with --verbose to see more details.')
     else:
         print(f'🛑 Verdict: Custom domain [{custom_domain}] seems to be not configured yet for AFD/Azure AD B2C.')
-        print(f'    🔧 Check troubleshooting section: rhttps://docs.microsoft.com/en-us/azure/active-directory-b2c/custom-domain?pivots=b2c-custom-policy#troubleshooting')
+        print(f'    🔧 Check troubleshooting section: [https://docs.microsoft.com/en-us/azure/active-directory-b2c/custom-domain?pivots=b2c-custom-policy#troubleshooting]')
 
     if is_success:
         print(f'🚀 Yay! Domain [{custom_domain}] is configured correctly for AFD & Azure AD B2C usage! [All Good ✅ ]')
