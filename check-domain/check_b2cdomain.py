@@ -16,6 +16,12 @@ import logging as log
 # Parameters 
 # Art: http://patorjk.com/software/taag/#p=display&f=Standard&t=Custom%20Domain%20Checker
 # Emojis: https://unicode.org/emoji/charts/full-emoji-list.html
+# Usage:
+# bash> curl -o "install.sh" https://raw.githubusercontent.com/razi-rais/Scarps/master/check-domain/install.sh && ./install.sh  && python check_b2cdomain.py -custom-domain "accountuat.contosobank.co.uk" -policy "b2c_1_susi"
+
+# PowerShell> curl -o "install.ps1" https://raw.githubusercontent.com/razi-rais/Scarps/master/check-domain/install.ps1 && ./install.ps1  && python check_b2cdomain.py -custom-domain "accountuat.contosobank.co.uk" -policy "b2c_1_susi"
+
+
 welcome = """\
    ____          _                    ____                        _          ____ _               _             
   / ___|   _ ___| |_ ___  _ __ ___   |  _ \  ___  _ __ ___   __ _(_)_ __    / ___| |__   ___  ___| | _____ _ __ 
@@ -46,7 +52,16 @@ def get_customdomain_info(domain):
         log.info(e)
     return ""
 
-def get_b2cinformation(b2c_wellknown_endpoint, custom_header):
+def get_JSON(response):
+    try:
+        response_json =  response.json()
+        log.info(response_json)
+        return response_json
+    except Exception as e:
+        log.info(e)
+    return ""
+    
+def get_b2cinformation(b2c_wellknown_endpoint,custom_header):
     try:
         response = requests.get(b2c_wellknown_endpoint, headers= custom_header)
         log.info(response)
@@ -54,7 +69,7 @@ def get_b2cinformation(b2c_wellknown_endpoint, custom_header):
     except Exception as e:
         log.info(e)
     return ""
-    
+
 def main_interaction(args):
     custom_domain = args.custom_domain
     policy = args.policy
@@ -74,29 +89,30 @@ def main_interaction(args):
     print(f'⏳ Connecting to Azure AD B2C endpoint [{b2c_wellknown_endpoint}]')
     
     response =  get_b2cinformation(b2c_wellknown_endpoint, custom_header)
-    response_json =  response.json()
 
     tenant_id = ""
     afd_header_found = False
     afd_header_origin_status = False
     b2c_tenant_found= False
     if response.status_code == 200:
-        for key, value in response_json.items():
-                log.info(f'{key}, :, {value}')
-                if key.lower() == "jwks_uri":
-                    val = value.lower().split('/')
-                    if val[2] == custom_domain.lower():
-                        b2c_tenant_found = True
-                if key.lower() == "issuer":
-                        tenant_id = val = value.lower().split('/')[3]
+        response_json =  get_JSON(response)
+        if response:
+            for key, value in response_json.items():
+                    log.info(f'{key}, :, {value}')
+                    if key.lower() == "jwks_uri":
+                        val = value.lower().split('/')
+                        if val[2] == custom_domain.lower():
+                            b2c_tenant_found = True
+                    if key.lower() == "issuer":
+                            tenant_id = val = value.lower().split('/')[3]
 
-        response_headers = response.headers
-        for item in response_headers.items():
-                log.info(f'{item[0]}, :, {item[1]}')
-                if item[0].lower() == "x-azure-ref":
-                    afd_header_found = True   
-                if item[0].lower() == "x-azure-originstatuscode":
-                    afd_header_origin_status = item[1]
+            response_headers = response.headers
+            for item in response_headers.items():
+                    log.info(f'{item[0]}, :, {item[1]}')
+                    if item[0].lower() == "x-azure-ref":
+                        afd_header_found = True   
+                    if item[0].lower() == "x-azure-originstatuscode":
+                        afd_header_origin_status = item[1]
     else:
             print(f'💔 Bummer! Azure AD B2C endpoint [{b2c_wellknown_endpoint}] returns [status code: {response.status_code}]. Run command with --verbose to see more details.')
 
