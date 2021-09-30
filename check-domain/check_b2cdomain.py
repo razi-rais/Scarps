@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
 """
     This includes necessary functions for CLI and Main.
 """
@@ -17,7 +15,7 @@ import logging as log
 # Art: http://patorjk.com/software/taag/#p=display&f=Standard&t=Custom%20Domain%20Checker
 # Emojis: https://unicode.org/emoji/charts/full-emoji-list.html
 # Usage:
-# bash> curl -o "install.sh" https://raw.githubusercontent.com/razi-rais/Scarps/master/check-domain/install.sh && ./install.sh  && python check_b2cdomain.py -custom-domain "accountuat.contosobank.co.uk" -policy "b2c_1_susi"
+# bash> curl -o "install.sh" https://raw.githubusercontent.com/razi-rais/Scarps/master/check-domain/install.sh && chmod +x ./install.sh && ./install.sh  && python check_b2cdomain.py -custom-domain "accountuat.contosobank.co.uk" -policy "b2c_1_susi"
 
 # PowerShell> curl -o "install.ps1" https://raw.githubusercontent.com/razi-rais/Scarps/master/check-domain/install.ps1 && ./install.ps1  && python check_b2cdomain.py -custom-domain "accountuat.contosobank.co.uk" -policy "b2c_1_susi"
 
@@ -27,7 +25,13 @@ welcome = """\
   / ___|   _ ___| |_ ___  _ __ ___   |  _ \  ___  _ __ ___   __ _(_)_ __    / ___| |__   ___  ___| | _____ _ __ 
  | |  | | | / __| __/ _ \| '_ ` _ \  | | | |/ _ \| '_ ` _ \ / _` | | '_ \  | |   | '_ \ / _ \/ __| |/ / _ \ '__|
  | |__| |_| \__ \ || (_) | | | | | | | |_| | (_) | | | | | | (_| | | | | | | |___| | | |  __/ (__|   <  __/ |   
-  \____\__,_|___/\__\___/|_| |_| |_| |____/ \___/|_| |_| |_|\__,_|_|_| |_|  \____|_| |_|\___|\___|_|\_\___|_|   
+  \____\__,_|___/\__\___/|_| |_| |_| |____/ \___/|_| |_| |_|\__,_|_|_| |_|  \____|_| |_|\___|\___|_|\_\___|_| 
+
+           _    _____ ____               _                             _    ____    ____ ____   ____ 
+          / \  |  ___|  _ \     _       / \    _____   _ _ __ ___     / \  |  _ \  | __ )___ \ / ___|
+         / _ \ | |_  | | | |  _| |_    / _ \  |_  / | | | '__/ _ \   / _ \ | | | | |  _ \ __) | |    
+        / ___ \|  _| | |_| | |_   _|  / ___ \  / /| |_| | | |  __/  / ___ \| |_| | | |_) / __/| |___ 
+       /_/   \_\_|   |____/    |_|   /_/   \_\/___|\__,_|_|  \___| /_/   \_\____/  |____/_____|\____|
 """
 print(welcome)
 
@@ -84,17 +88,16 @@ def main_interaction(args):
     if dig_result:
         print(f'💯 FOUND! [{custom_domain}] is mapped to AFD [{dig_result}]')
     else:
-        print(f'💔 Bummer! Cannot locate AFD information. Hint: Domain [{custom_domain}] may be using some type of WAF. Try running command with --verbose switch to view all DNS entries found against this domain.')
+        print(f'❓ Bummer! Cannot locate AFD information publicly. Hint: Is domain [{custom_domain}] using some type of WAF? Try running command with --verbose switch to view all DNS entries against this domain.')
     
     print(f'⏳ Connecting to Azure AD B2C endpoint [{b2c_wellknown_endpoint}]')
     
     response =  get_b2cinformation(b2c_wellknown_endpoint, custom_header)
-
     tenant_id = ""
     afd_header_found = False
     afd_header_origin_status = False
     b2c_tenant_found= False
-    if response.status_code == 200:
+    if response != "" and response.status_code == 200:
         response_json =  get_JSON(response)
         if response:
             for key, value in response_json.items():
@@ -114,7 +117,7 @@ def main_interaction(args):
                     if item[0].lower() == "x-azure-originstatuscode":
                         afd_header_origin_status = item[1]
     else:
-            print(f'💔 Bummer! Azure AD B2C endpoint [{b2c_wellknown_endpoint}] returns [status code: {response.status_code}]. Run command with --verbose to see more details.')
+            print(f'💔 Bummer! Connection to Azure AD B2C endpoint [{b2c_wellknown_endpoint}] failed. Run command with --verbose to see more details.')
 
     is_success = False
     if b2c_tenant_found and afd_header_found:
@@ -127,6 +130,7 @@ def main_interaction(args):
                 print(f'   💔 AFD Header [X-Azure-OriginStatusCode] is missing or value is not within normal range ! This is a symptom of backend calls from AFD --> Azure AD may be having issues. Run command with --verbose to see more details.')
     else:
         print(f'🛑 Verdict: Custom domain [{custom_domain}] seems to be not configured yet for AFD/Azure AD B2C.')
+        print(f'    🔧 Hint: Check if this domain is using 3rd party WAF as it may be blocking request to AFD (think CAPTCHA etc.)')
         print(f'    🔧 Check troubleshooting section: [https://docs.microsoft.com/en-us/azure/active-directory-b2c/custom-domain?pivots=b2c-custom-policy#troubleshooting]')
 
     if is_success:
