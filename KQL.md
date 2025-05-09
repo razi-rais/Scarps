@@ -476,3 +476,23 @@ SecurityEvent
 | where EventID == "4688"
 | summarize count() by Process, Computer
 //
+
+
+///Load external data 
+///Azrue Data Cetner IP Ranges and list them by servcie (e.g. Azure Front Door)
+externaldata (
+    values: dynamic
+)
+[
+    "https://download.microsoft.com/download/7/1/d/71d86715-5596-4529-9b13-da13a5de5b63/ServiceTags_Public_20250505.json"
+]
+with (
+    format = 'multijson'
+)
+| mv-expand values
+| extend service = tostring(values.name)
+| extend addressPrefixes = values.properties.addressPrefixes
+| mv-expand addressPrefixes
+| project service, ip = tostring(addressPrefixes)
+| summarize make_list(ip) by service
+
