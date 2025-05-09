@@ -497,3 +497,18 @@ with (
 | project service, ip = tostring(addressPrefixes)
 | summarize make_list(ip) by service
 
+//Check IP belogs to Azure and list matching services
+let ip_to_check = "13.64.151.161"; //example
+externaldata(values: dynamic)
+[
+  "https://download.microsoft.com/download/7/1/d/71d86715-5596-4529-9b13-da13a5de5b63/ServiceTags_Public_20250505.json"
+]
+with(format='multijson')
+| mv-expand values
+| extend serviceName = tostring(values.name)
+| extend prefixes = values.properties.addressPrefixes
+| mv-expand prefix = prefixes
+| extend ip = tostring(prefix)
+| extend isMatch = ipv4_is_in_range(ip_to_check, ip)
+| where isMatch == true
+| summarize match=any(isMatch) by serviceName
