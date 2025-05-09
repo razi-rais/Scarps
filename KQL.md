@@ -480,6 +480,7 @@ SecurityEvent
 
 ///Load external data 
 ///Azrue Data Cetner IP Ranges and list them by servcie (e.g. Azure Front Door)
+//Read: https://learn.microsoft.com/en-us/azure/virtual-network/service-tags-overview
 externaldata (
     values: dynamic
 )
